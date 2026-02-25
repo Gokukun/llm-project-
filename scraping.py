@@ -10,7 +10,6 @@ def fetch_page_text(url: str) -> str:
         html  = page.content()
         browser.close()
 
-
     soup = BeautifulSoup(html, "html.parser")
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()

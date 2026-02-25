@@ -1,7 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from typing import List
-
-from app.vectorstore import create_collection, embed_and_store
+from app.vectorestore  import create_collection, embed_and_store
 from app.ingest import ingest_pages
 from app.chat import answer_query
 

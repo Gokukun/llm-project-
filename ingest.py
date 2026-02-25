@@ -11,6 +11,6 @@ def ingest_pages(urls: list[str]) -> list[str]:
 
     for url in urls:
         text =  fetch_page_text(url)
-        chunks.extend(splitter.split(text))
+        chunks.extend(splitter.split_text(text))
 
     return  chunks
