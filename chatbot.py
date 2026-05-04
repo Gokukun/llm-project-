@@ -32,7 +32,7 @@ def load_vectorstore():
     docs2 = loader2.load()
 
     # Load PDF
-    loader3 = PyPDFLoader("data/MEET RANA.pdf")
+    loader3 = PyPDFLoader("MEET RANA.pdf")
     docs3 = loader3.load()
 
     # Combine documents
