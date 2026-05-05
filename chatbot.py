@@ -2,10 +2,7 @@ import streamlit as st
 import bs4
 from groq import Groq
 
-from huggingface_hub import InferenceClient
-
 from langchain_community.document_loaders import (
-    TextLoader,
     WebBaseLoader,
     PyPDFLoader
 )
@@ -15,72 +12,107 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 
 
+# ---------------- VECTOR STORE ---------------- #
+
 @st.cache_resource
 def load_vectorstore():
-    # Load text file
-    
+    try:
+        all_docs = []
 
-    # Load website
-    loader2 = WebBaseLoader(
-        web_path=("https://gokukun.github.io/ranameet.github.io/",),
-        bs_kwargs=dict(
-            parse_only=bs4.SoupStrainer(
-                class_=("post-title", "post-content", "post-header")
+        # 🌐 Load Website
+        try:
+            loader2 = WebBaseLoader(
+                web_path=("https://gokukun.github.io/ranameet.github.io/",),
+                bs_kwargs=dict(
+                    parse_only=bs4.SoupStrainer(
+                        class_=("post-title", "post-content", "post-header")
+                    )
+                ),
             )
-        ),
-    )
-    docs2 = loader2.load()
+            docs2 = loader2.load()
+            all_docs.extend(docs2)
+        except Exception as e:
+            st.warning(f"Website load failed: {e}")
 
-    # Load PDF
-    loader3 = PyPDFLoader("MEET RANA.pdf")
-    docs3 = loader3.load()
+        # 📄 Load PDF (only if exists)
+        try:
+            loader3 = PyPDFLoader("data/MEET RANA.pdf")
+            docs3 = loader3.load()
+            all_docs.extend(docs3)
+        except Exception as e:
+            st.warning(f"PDF load failed: {e}")
 
-    # Combine documents
-    all_docs =  docs2 + docs3
+        if not all_docs:
+            st.error("No documents loaded!")
+            return None
 
-    # Split text
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=300
-    )
+        # ✂️ Split text
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=300
+        )
+        split_docs = splitter.split_documents(all_docs)
 
-    split_docs = splitter.split_documents(all_docs)
+        # 🤖 Embeddings
+        embeddings = HuggingFaceEmbeddings(
+            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        )
 
-    # Embeddings
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
+        # 💾 Vector DB
+        db = Chroma.from_documents(
+            documents=split_docs,
+            embedding=embeddings
+        )
 
-    # Vector DB
-    db = Chroma.from_documents(
-        documents=split_docs,
-        embedding=embeddings
-    )
+        return db
 
-    return db
+    except Exception as e:
+        st.error(f"Vectorstore Error: {e}")
+        return None
 
 
-db = load_vectorstore()
+# Lazy load (VERY IMPORTANT)
+db = None
 
-# Hugging Face client
-client = Groq(
-    api_key=st.secrets["GROQ_API_KEY"]
-)
 
 def retrieve_context(query):
-    results = db.similarity_search(query, k=10)
-    context = "\n\n".join([doc.page_content for doc in results])
-    return context
+    global db
+    if db is None:
+        db = load_vectorstore()
+
+    if db is None:
+        return "No data available."
+
+    results = db.similarity_search(query, k=5)
+    return "\n\n".join([doc.page_content for doc in results])
+
+
+# ---------------- GROQ CLIENT ---------------- #
+
+def get_client():
+    try:
+        return Groq(api_key=st.secrets["GROQ_API_KEY"])
+    except Exception:
+        st.error("GROQ API key missing. Add it in Streamlit Secrets.")
+        return None
+
+
+# ---------------- MAIN FUNCTION ---------------- #
 
 def ask_llama(question):
+    client = get_client()
+    if client is None:
+        return "API key not configured."
+
     context = retrieve_context(question)
 
-    response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages = [
-    {
-        "role": "system",
-        "content": """
+    try:
+        response = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """
 You are a portfolio assistant.
 
 Answer only from provided context.
@@ -88,22 +120,22 @@ Answer only from provided context.
 If the user asks about all projects, list EVERY project found in the context.
 Do not summarize into one item if multiple projects exist.
 """
-    },
-    {
-        "role": "user",
-        "content": f"""
+                },
+                {
+                    "role": "user",
+                    "content": f"""
 Context:
 {context}
 
 Question:
 {question}
 """
-    }
+                }
+            ],
+            max_tokens=250
+        )
 
+        return response.choices[0].message.content
 
-            
-        ],
-        max_tokens=250
-    )
-
-    return response.choices[0].message.content
+    except Exception as e:
+        return f"Error generating response: {e}"
