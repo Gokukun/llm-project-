@@ -7,7 +7,7 @@ from langchain_community.document_loaders import (
     PyPDFLoader
 )
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.embeddings import FakeEmbeddings
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
 
@@ -54,8 +54,8 @@ def load_vectorstore():
         split_docs = splitter.split_documents(all_docs)
 
         # 🤖 Embeddings
-        embeddings = HuggingFaceEmbeddings(
-            model_name="sentence-transformers/all-MiniLM-L6-v2"
+        
+        embeddings = FakeEmbeddings(size=384)
         )
 
         # 💾 Vector DB
