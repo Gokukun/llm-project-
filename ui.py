@@ -13,7 +13,10 @@ def ask_backend(message, history):
         )
 
         data = response.json()
-        answer  = data.get("answer", "No Response.")
+        if response.ok:
+            answer = data.get("answer", "No response from the chatbot.")
+        else:
+            answer = data.get("detail", f"Backend request failed ({response.status_code}).")
     except Exception as e:
         answer = f"Error : {str(e)}"
 
