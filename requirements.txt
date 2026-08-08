@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 beautifulsoup4
 fastapi
 gradio
@@ -11,3 +12,20 @@ qdrant-client
 requests
 sentence-transformers
 uvicorn[standard]
+=======
+streamlit==1.35.0
+
+langchain==0.1.20
+langchain-community==0.0.38
+
+chromadb==0.4.24
+
+pypdf==4.2.0
+beautifulsoup4==4.12.3
+
+groq==0.5.0
+
+protobuf==3.20.3
+pillow==10.3.0
+numpy==1.26.4
+>>>>>>> 02fa0351d4373998fed0b72d4f8221a24450399e
