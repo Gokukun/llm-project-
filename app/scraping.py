@@ -1,16 +1,16 @@
-from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
+import requests
 
 
 def fetch_page_text(url: str) -> str:
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        page = browser.new_page()
-        page.goto(url, wait_until="networkidle")
-        html  = page.content()
-        browser.close()
+    response = requests.get(
+        url,
+        headers={"User-Agent": "RanaMeetChatbot/1.0"},
+        timeout=30,
+    )
+    response.raise_for_status()
 
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(response.text, "html.parser")
     for tag in soup(["script", "style", "noscript"]):
         tag.decompose()
     return soup.get_text(separator="\n", strip=True)

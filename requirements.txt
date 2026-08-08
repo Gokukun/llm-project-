@@ -3,7 +3,6 @@ fastapi
 langchain
 langchain-groq
 langchain-text-splitters
-playwright
 python-dotenv
 qdrant-client
 requests
