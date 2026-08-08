@@ -1,6 +1,6 @@
 from qdrant_client import QdrantClient
+from qdrant_client.models import Document
 from dotenv import load_dotenv
-from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_groq import ChatGroq  
 import os
 
@@ -13,26 +13,24 @@ llm = ChatGroq(
 )
 
 
-embedding_model = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2"
-)
-
-
 qdrant = QdrantClient(
     url=os.getenv("QDRANT_URL", "http://localhost:6333"),
     api_key=os.getenv("QDRANT_API_KEY"),
+    cloud_inference=True,
 )
 
 COLLECTION = "intellentx_docs"
 
 
 def retrieve_context(query: str, k: int = 5) -> str:
-    query_vector = embedding_model.embed_query(query)
-
     hits = qdrant.query_points(
         collection_name=COLLECTION,
-        query=query_vector,
-        limit=k
+        query=Document(
+            text=query,
+            model="sentence-transformers/all-MiniLM-L6-v2",
+        ),
+        limit=k,
+        with_payload=True,
     )
 
     return "\n\n".join(
