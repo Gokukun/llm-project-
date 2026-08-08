@@ -1,0 +1,13 @@
+beautifulsoup4
+fastapi
+gradio
+langchain
+langchain-groq
+langchain-huggingface
+langchain-text-splitters
+playwright
+python-dotenv
+qdrant-client
+requests
+sentence-transformers
+uvicorn[standard]
