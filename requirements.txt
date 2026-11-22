@@ -1,9 +1,11 @@
 beautifulsoup4
 fastapi
-langchain
 langchain-groq
 langchain-text-splitters
+pgvector
+psycopg[binary]
 python-dotenv
-qdrant-client
+rank-bm25
 requests
+sentence-transformers
 uvicorn[standard]

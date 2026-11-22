@@ -1,7 +1,6 @@
-from qdrant_client import QdrantClient
-from qdrant_client.models import Document
 from dotenv import load_dotenv
-from langchain_groq import ChatGroq  
+from langchain_groq import ChatGroq
+from app.vectorestore import search
 import os
 
 load_dotenv()
@@ -9,33 +8,12 @@ load_dotenv()
 
 llm = ChatGroq(
     groq_api_key=os.getenv("GROQ_API_KEY"),
-    model_name="llama-3.3-70b-versatile"
+    model_name="openai/gpt-oss-120b"
 )
-
-
-qdrant = QdrantClient(
-    url=os.getenv("QDRANT_URL", "http://localhost:6333"),
-    api_key=os.getenv("QDRANT_API_KEY"),
-    cloud_inference=True,
-)
-
-COLLECTION = "intellentx_docs"
 
 
 def retrieve_context(query: str, k: int = 5) -> str:
-    hits = qdrant.query_points(
-        collection_name=COLLECTION,
-        query=Document(
-            text=query,
-            model="sentence-transformers/all-MiniLM-L6-v2",
-        ),
-        limit=k,
-        with_payload=True,
-    )
-
-    return "\n\n".join(
-        point.payload["text"] for point in hits.points
-    )
+    return "\n\n".join(search(query, k=k, mode="hybrid"))
 
 
 def answer_query(query: str) -> str:

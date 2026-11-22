@@ -10,3 +10,6 @@ wheels/
 .venv
 .env
 .gradio/
+
+# Local source documents (not used by the deployed API)
+data/

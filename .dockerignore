@@ -1,0 +1,12 @@
+.git
+.gitignore
+.venv
+.env
+.gradio
+__pycache__
+**/__pycache__
+*.py[cod]
+data
+*.log
+.pytest_cache
+uv.lock

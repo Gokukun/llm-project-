@@ -9,8 +9,8 @@ from app.chat import answer_query
 app = FastAPI()
 
 
-@app.api_route("/", methods=["GET", "HEAD"])
-def root():
+@app.api_route("/health", methods=["GET", "HEAD"])
+def health():
     return {"message": "server is running"}
 
 @app.post("/init")
